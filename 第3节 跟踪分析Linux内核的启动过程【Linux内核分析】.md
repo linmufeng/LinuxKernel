@@ -25,12 +25,14 @@
 cd LinuxKernel/
 qemu -kernel linux-3.18.6/arch/x86/boot/bzImage -initrd rootfs.img
 ```
-![这里写图片描述](http://img.blog.csdn.net/20170312163922405?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](http://img.blog.csdn.net/20170312203742560?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+
 
 内核启动完成后将进入[menu程序](https://github.com/mengning/menu)（《软件工程C编码实践篇》的课程项目）。
 
-![这里写图片描述](http://img.blog.csdn.net/20170312163941683?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
+![这里写图片描述](http://img.blog.csdn.net/20170312203809523?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 ## 2. 使用gdb跟踪调试内核
 
@@ -42,8 +44,7 @@ qemu -kernel linux-3.18.6/arch/x86/boot/bzImage -initrd rootfs.img -s -S #关于
 
 可以看到，内核启动中被冻结起来了，当前状态是Stopped。
 
-![这里写图片描述](http://img.blog.csdn.net/20170312164031375?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
-
+![这里写图片描述](http://img.blog.csdn.net/20170312203824435?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 
 另开一个shell窗口
