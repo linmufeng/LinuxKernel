@@ -25,7 +25,7 @@
 cd LinuxKernel/
 qemu -kernel linux-3.18.6/arch/x86/boot/bzImage -initrd rootfs.img
 ```
-![这里写图片描述](http://img.blog.csdn.net/20170312203742560?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](https://github.com/linmufeng/LinuxKernel/blob/master/image/3010002.PNG)
 
 
 
@@ -44,7 +44,7 @@ qemu -kernel linux-3.18.6/arch/x86/boot/bzImage -initrd rootfs.img -s -S #关于
 
 可以看到，内核启动中被冻结起来了，当前状态是Stopped。
 
-![这里写图片描述](http://img.blog.csdn.net/20170312203824435?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](https://github.com/linmufeng/LinuxKernel/blob/master/image/3010004.PNG)
 
 
 另开一个shell窗口
@@ -55,7 +55,7 @@ gdb
 （gdb）target remote:1234 # 建立gdb和gdbserver之间的连接,按c 让qemu上的Linux继续运行
 （gdb）break start_kernel # 断点的设置可以在target remote之前，也可以在之后
 ```
-![这里写图片描述](http://img.blog.csdn.net/20170312200549577?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](https://github.com/linmufeng/LinuxKernel/blob/master/image/3010015.PNG)
 
 内核启动在start\_kernel进程处停住了，在这之前从Power On开始是很长的初始化过程。
 
