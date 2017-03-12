@@ -307,7 +307,7 @@ static noinline void __init_refok rest_init(void)
 # 六、总结
 上面的代码有点多，因此小结一下。 系统进入start\_kernel这个函数之前已经进行了一些最低限度的初始化，再往前研究就涉及很多硬件相关及编程语言了。内核即进入了C语言部分，它完成了内核的大部分初始化工作。实际上，可以将start\_kernel函数看做内核的main函数。
 
-系统允许一个进程创建新进程，新进程即为子进程，子进程还可以创建新的子进程，形成进程树结构模型。整个linux系统的所有进程也是一个树形结构。Linux下有3个特殊的进程，idle进程(PID = 0), init进程(PID = 1)和kthreadd(PID = 2)。
+系统允许一个进程创建新进程，新进程即为子进程，子进程还可以创建新的子进程，形成进程树结构模型。整个linux系统的所有进程也是一个树形结构。Linux下有3个特殊的进程，idle进程, init进程和kthreadd。
 
 最初执行的进程即是0号进程init\_task，它是被静态产生的，内存栈的位置固定,执行一些初始化的工作。一直到start\_kernel开始调用执行sched\_init()，0号进程被init\_idle(current, smp\_processor_id())进程初始化成为一个idle task,变成上一次实验中的进程一样的，通过一个while循环不断执行，只要运行栈里没有别的进程它就执行，循环中不断检测运行栈里是否有其他进程并通过schedule函数进行调度。
 
