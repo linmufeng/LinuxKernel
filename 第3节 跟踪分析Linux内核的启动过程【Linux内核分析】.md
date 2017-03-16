@@ -25,7 +25,7 @@
 cd LinuxKernel/
 qemu -kernel linux-3.18.6/arch/x86/boot/bzImage -initrd rootfs.img
 ```
-![这里写图片描述](https://github.com/linmufeng/LinuxKernel/blob/master/image/3010002.PNG)
+![这里写图片描述](http://img.blog.csdn.net/20170312203742560?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 
 
@@ -44,7 +44,7 @@ qemu -kernel linux-3.18.6/arch/x86/boot/bzImage -initrd rootfs.img -s -S #关于
 
 可以看到，内核启动中被冻结起来了，当前状态是Stopped。
 
-![这里写图片描述](https://github.com/linmufeng/LinuxKernel/blob/master/image/3010004.PNG)
+![这里写图片描述](http://img.blog.csdn.net/20170312203824435?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 
 另开一个shell窗口
@@ -55,7 +55,7 @@ gdb
 （gdb）target remote:1234 # 建立gdb和gdbserver之间的连接,按c 让qemu上的Linux继续运行
 （gdb）break start_kernel # 断点的设置可以在target remote之前，也可以在之后
 ```
-![这里写图片描述](https://github.com/linmufeng/LinuxKernel/blob/master/image/3010015.PNG)
+![这里写图片描述](http://img.blog.csdn.net/20170312200549577?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 内核启动在start\_kernel进程处停住了，在这之前从Power On开始是很长的初始化过程。
 
@@ -304,10 +304,60 @@ static noinline void __init_refok rest_init(void)
 }
 ```
 
-# 六、总结
-上面的代码有点多，因此小结一下。 系统进入start\_kernel这个函数之前已经进行了一些最低限度的初始化，再往前研究就涉及很多硬件相关及编程语言了。内核即进入了C语言部分，它完成了内核的大部分初始化工作。实际上，可以将start\_kernel函数看做内核的main函数。
+## 3.kernel_init()
 
-系统允许一个进程创建新进程，新进程即为子进程，子进程还可以创建新的子进程，形成进程树结构模型。整个linux系统的所有进程也是一个树形结构。Linux下有3个特殊的进程，idle进程, init进程和kthreadd。
+```
+static int __ref kernel_init(void *unused)
+{
+    int ret;
+ 
+    kernel_init_freeable();
+    /* need to finish all async __init code before freeing the memory */
+    async_synchronize_full();
+    free_initmem();
+    mark_rodata_ro();
+    system_state = SYSTEM_RUNNING;
+    numa_default_policy();
+ 
+    flush_delayed_fput();
+ 
+    if (ramdisk_execute_command) {//这也就是Linux系统中的1号进程，是第一个用户态进程，默认是根目录下的一个程序；如果根目录下没有这个进程，系统会寻找其他的默认进程作为1号进程，当系统没有进程需要执行时就调度到idle进程。
+        ret = run_init_process(ramdisk_execute_command);
+        if (!ret)
+            return 0;
+        pr_err("Failed to execute %s (error %d)\n",
+               ramdisk_execute_command, ret);
+    }
+ 
+    /*
+     * We try each of these until one succeeds.
+     *
+     * The Bourne shell can be used instead of init if we are
+     * trying to recover a really broken machine.
+     */
+    if (execute_command) {
+        ret = run_init_process(execute_command);
+        if (!ret)
+            return 0;
+        pr_err("Failed to execute %s (error %d).  Attempting defaults...\n",
+            execute_command, ret);
+    }
+    if (!try_to_run_init_process("/sbin/init") ||
+        !try_to_run_init_process("/etc/init") ||
+        !try_to_run_init_process("/bin/init") ||
+        !try_to_run_init_process("/bin/sh"))
+        return 0;
+ 
+    panic("No working init found.  Try passing init= option to kernel. "
+          "See Linux Documentation/init.txt for guidance.");
+}
+```
+
+# 六、总结
+
+系统进入start\_kernel这个函数之前已经进行了一些最低限度的初始化，再往前研究就涉及很多硬件相关及编程语言了。内核即进入了C语言部分，它完成了内核的大部分初始化工作。实际上，可以将start\_kernel函数看做内核的main函数。
+
+系统允许一个进程创建新进程，新进程即为子进程，子进程还可以创建新的子进程，形成进程树结构模型。整个linux系统的所有进程也是一个树形结构。Linux下有3个特殊的进程，idle进程(PID = 0), init进程(PID = 1)和kthreadd(PID = 2)。
 
 最初执行的进程即是0号进程init\_task，它是被静态产生的，内存栈的位置固定,执行一些初始化的工作。一直到start\_kernel开始调用执行sched\_init()，0号进程被init\_idle(current, smp\_processor_id())进程初始化成为一个idle task,变成上一次实验中的进程一样的，通过一个while循环不断执行，只要运行栈里没有别的进程它就执行，循环中不断检测运行栈里是否有其他进程并通过schedule函数进行调度。
 
@@ -316,3 +366,8 @@ init进程由idle通过kernel_thread创建，在内核空间完成初始化后, 
 kthreadd进程由idle通过kernel\_thread创建，并始终运行在内核空间, 负责所有内核线程的调度和管理，它的任务就是管理和调度其他内核线程kernel\_thread, 会循环执行一个kthread的函数，该函数的作用就是运行kthread\_create\_list全局链表中维护的kthread, 当我们调用kernel\_thread创建的内核线程会被加入到此链表中，因此所有的内核线程都是直接或者间接的以kthreadd为父进程。
 
 在本次实验中我初步体会了Linux系统的启动过程，但是对Linux系统的理解还不够深入，需要进一步加强，期待下一次的实验。
+
+# 参考资料
+- [构造一个简单的Linux系统MenuOS](http://www.cnblogs.com/July0207/p/5266594.html)
+
+- [Linux下0号进程的前世(init_task进程)今生(idle进程)](http://blog.csdn.net/gatieme/article/details/51484562)
