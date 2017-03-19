@@ -72,5 +72,5 @@ int main()
 
 # 参考资料
 
- [系统调用](http://baike.baidu.com/link?url=zcKqTAX6EAl7u8bu4YjWms2MrGF2-4RiJ8jvqfiKucTd3O7UM8-pPxJcPTF3zbTbnhqsxFC4k7XwP9XKLjbMFXrDT32pAQvh7PQq82C-waKCaIw3YrOvtPwbcmxV_IFN)
-- [Linux内核分析](http://www.tuicool.com/articles/E7rYza)
+1. [系统调用](http://baike.baidu.com/link?url=zcKqTAX6EAl7u8bu4YjWms2MrGF2-4RiJ8jvqfiKucTd3O7UM8-pPxJcPTF3zbTbnhqsxFC4k7XwP9XKLjbMFXrDT32pAQvh7PQq82C-waKCaIw3YrOvtPwbcmxV_IFN)
+2. [Linux内核分析](http://www.tuicool.com/articles/E7rYza)
