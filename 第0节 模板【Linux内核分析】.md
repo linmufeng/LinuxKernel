@@ -7,7 +7,7 @@
 
 # 三、实验环境
 
-实验楼linux内核分析课程线上虚拟机的linux环境
+实验楼linux内核分析课程[线上虚拟机的linux环境](http://www.shiyanlou.com/courses/195)
 
 主要优点：环境免配置，使用方便，不消耗主机资源。
 
