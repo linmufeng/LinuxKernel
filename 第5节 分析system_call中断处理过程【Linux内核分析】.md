@@ -55,11 +55,15 @@ c                         //继续执行
 
 ![这里写图片描述](http://img.blog.csdn.net/20170326221009439?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
+单步执行
+![这里写图片描述](http://img.blog.csdn.net/20170327133134166?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
+在system_call处设置断点，但是无法进入函数内部，指令运行结束，返回pid
+![这里写图片描述](http://img.blog.csdn.net/20170327133219980?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 # 五、实验分析
 
-中断相关的初始化代码是通过linux-3.18.6/init/main.c文件中的start\_kernel函数里的trap_init()初始化的。执行int $0x80指令后内核开始执行system_call入口处开始的代码，位于entry_32.S汇编文件中。
+中断相关的初始化代码是通过linux-3.18.6/init/main.c文件中的start\_kernel函数里的trap\_init()初始化的。执行int $0x80指令后内核开始执行system_call入口处开始的代码，位于entry_32.S汇编文件中。
 下面分析system_call汇编代码：
 
 ```
@@ -143,7 +147,7 @@ void __init trap_init(void)
 #endif
 }
 ```
-第839行set\_system_trap_gate(SYSCALL_VECTOR, &system_call);设置了系统调用的中断向量（即系统调用的入口地址），即system_call“函数”的地址绑定到中断向量。所以在int $0x80之后，就转到中断向量，从而执行中断处理程序（系统调用程序）。也就是说中断向量指向的中断处理程序就是int $0x80指令执行完之后接着执行的指令的地方。
+第48行set\_system_trap_gate(SYSCALL_VECTOR, &system_call);设置了系统调用的中断向量（即系统调用的入口地址），即system_call“函数”的地址绑定到中断向量。所以在int $0x80之后，就转到中断向量，从而执行中断处理程序（系统调用程序）。也就是说中断向量指向的中断处理程序就是int $0x80指令执行完之后接着执行的指令的地方。
 
 /arch/x86/kernel/entry_32.S
 
@@ -230,7 +234,6 @@ SAVE_ALL
 ```
 
 
-指令中的一些小疑惑的地方：.macro和.endm，用.MACRO指令你可以定义一个宏，可以把需要重复执行的一段代码，或者是一组指令缩写成一个宏
 
 在这段代码中，保存了相关寄存器的值。它们是：ES,DS,EAX,EBP,EDI,ESI,EDX,ECX,EBX等等。从这里寄存器的顺序可以知道压栈的最后压入的是ebx，这里压入的栈是内核栈。
 
@@ -322,6 +325,8 @@ syscall_exit_work:
   
 ```
 
+系统调用流程图
+
 ![这里写图片描述](http://img.blog.csdn.net/20170326225135343?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 
@@ -337,3 +342,12 @@ syscall_exit_work:
 
 # 参考资料
 
+- [分析system_call中断处理过程 1](http://blog.csdn.net/myfather103/article/details/44700523)
+
+- [分析system_call中断处理过程 2](http://www.cnblogs.com/jorilee/p/5326670.html)
+
+- [分析system_call中断处理过程 3](https://xuezhaojiang.github.io/LinuxCore/lab5/lab5.html)
+
+- [内核抢占与中断返回](http://www.cnblogs.com/hustcat/archive/2009/08/31/1557507.html)
+
+- [说说中断上下文的切换](http://blog.csdn.net/zhaolianxun1987/article/details/51236216)
