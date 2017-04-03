@@ -82,6 +82,8 @@ mv test_fork.c test.c
 make rootfs
 ```
 
+![这里写图片描述](http://img.blog.csdn.net/20170403141500899?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 ## 3.调试MenuOS
 
 通过增加-s -S启动参数打开调试模式
@@ -100,6 +102,8 @@ file linux-3.18.6/vmlinux
 target remote:1234
 ```
 
+![这里写图片描述](http://img.blog.csdn.net/20170403141601078?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
 设置断点
 
 ```
@@ -116,30 +120,30 @@ b copy_thread
 b ret_from_fork
 ```
 
-在虚拟机环境中运行情况如下图：
+![这里写图片描述](http://img.blog.csdn.net/20170403141637422?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-![这里写图片描述](http://img.blog.csdn.net/20170402221408637?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
- 
-以下使用gdb调试一下，在进程创建过程中的几个关键函数出设置断点。
- ![这里写图片描述](http://img.blog.csdn.net/20170402221434851?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-在系统启动过程走了些弯路，设置断点的这几个函数都是系统创建进程所必须的关键部分，所以启动过程中do_fork,copy_process，copy_thread不断的多次出现，我只好暂时使断点失效，才让menuos顺利启动到命令提示符。disable breakpoints 1 2 3 4 5 6.
-执行fork命令，停在了断点SyS_clone处，单步执行，定在了断点do_fork处。经过几行代码，
+在系统启动过程走了些弯路，设置断点的这几个函数都是系统创建进程所必须的关键部分，所以启动过程中do\_fork,copy_process，copy_thread不断的多次出现，我只好暂时使断点失效，才让menuos顺利启动到命令提示符。disable breakpoints 1 2 3 4 5 6.
+执行fork命令，停在了断点SyS\_clone处，单步执行，定在了断点do_fork处。经过几行代码，
 
-p = copy_process(clone_flags, stack_start,stack_size,chile_tidptr, NULL,trace);
+![这里写图片描述](http://img.blog.csdn.net/20170403141826860?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+p = copy\_process(clone_flags, stack_start,stack_size,chile_tidptr, NULL,trace);
 停在断点copy_process.在执行几行代码，如下：
-p = dup_task_struct(current);
+p = dup\_task_struct(current);
 继续执行，断点arch_dup_task_struct停住。
 连续n命令后可以看到子进程的初始化过程：
- 
-![这里写图片描述](http://img.blog.csdn.net/20170402221532820?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-程序执行断在copy_thread后如下：
-![这里写图片描述](http://img.blog.csdn.net/20170402221626211?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+ ![这里写图片描述](http://img.blog.csdn.net/20170403142141392?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
  
+程序执行断在copy_thread后如下：
+
+![这里写图片描述](http://img.blog.csdn.net/20170403142215410?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+
 执行finish,及continue命令，进入了子进程执行的起点ret_from_fork.
  
- ![这里写图片描述](http://img.blog.csdn.net/20170402221635555?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](http://img.blog.csdn.net/20170403142300737?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast) 
 
 执行c命令，主要过程基本结束。
 
