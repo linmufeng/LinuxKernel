@@ -48,7 +48,47 @@ mv test_exec.c test.cd
 
 # 五、代码分析
 
-## 1.
+execve和前面博文分析的fork系统一样，是一种特殊的系统调用。fork的特殊在于系统调用后两次返回，生成了新进程，而不单单是在原来程序的系统调用的下一条语句。而execve的特殊在于它返回之后，执行的是一个新的程序了（例如返回程序的main入口，修改的是elf_entry），而不是以前调用execve的进程shell了。
+内核处理函数sys_execve内部会解析可执行文件格式，它的内部执行流程是do_execve -> do_execve_common -> exec_binprm。
+gdb断点设置：b sys_execve ;停到该位置，继续设置断点 b load_elf_binary; b start_thread。
+其中的一些函数解释：
+1）search_binary_handler符合寻找文件格式对应的解析模块，如下：
+
+```
+list_for_each_entry(fmt, &formats, lh) {
+if (!try_module_get(fmt->module))
+continue;
+read_unlock(&binfmt_lock);
+bprm->recursion_depth++;
+retval = fmt->load_binary(bprm);
+read_lock(&binfmt_lock);
+```
+
+对于ELF格式的可执行文件fmt->load_binary(bprm);执行的应该是load_elf_binary
+
+2）Linux内核是如何支持多种不同的可执行文件格式的？
+
+```
+static struct linux_binfmt elf_format = {
+.module = THIS_MODULE,
+.load_binary = load_elf_binary,
+.load_shlib = load_elf_library,
+.core_dump = elf_core_dump,
+.min_coredump = ELF_EXEC_PAGESIZE,
+};
+static int __init init_elf_binfmt(void)
+{
+register_binfmt(&elf_format);
+return 0;
+}
+```
+
+elf\_format 和 init_elf_binfmt，就是观察者模式中的观察者。
+
+3)可执行文件开始执行的起点在哪里？如何才能让execve系统调用返回到用户态时执行新程序？
+load_elf_binary -> start_thread中通过修改内核堆栈中的EIP的值作为新程序的起点。即修改一开始int 0x80压入内核堆栈的EIP。start_thread中的new_ip是返回到用户态第一条指令的地址，与可执行程序的头中的入口地址相同。
+
+
 
 # 六、总结
 新的可执行程序是从new\_ip开始执行,start_thread实际上是把返回到用户态的位置从Int 0x80的下一条指令，变成了规定的新加载的可执行文件的入口位置,即修改内核堆栈的EIP的值作为新程序的起点。
