@@ -498,3 +498,5 @@ Linux系统中，一个进程的一般执行过程：
 http://blog.csdn.net/u010771356/article/details/70188234
 
 https://xuezhaojiang.github.io/LinuxCore/lab8/lab8.html
+
+http://blog.csdn.net/naiveorange/article/details/51171214
