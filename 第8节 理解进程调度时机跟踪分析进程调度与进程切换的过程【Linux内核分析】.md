@@ -35,13 +35,15 @@ mv test_exec.c test.c
 make rootfs
 ```
 
+![这里写图片描述](http://img.blog.csdn.net/20170418205904581?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+
 ## 2.通过增加-s -S启动参数打开调试模式
 
 ```
 qemu -kernel ../linux-3.18.6/arch/x86/boot/bzImage -initrd ../rootfs.img -s -S
 ```
 
-![这里写图片描述](http://img.blog.csdn.net/20170416221034813?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 ## 3.打开gdb进行远程调试
 
@@ -54,9 +56,13 @@ target remote:1234
 
 ```
 
-![这里写图片描述](http://img.blog.csdn.net/20170416221103735?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+![这里写图片描述](http://img.blog.csdn.net/20170418210139366?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 ## 4.设置断点
+
+根据云课堂上的知识，这次我们主要通过调试跟踪linux内核中的schedule函数，进而分析linux系统进行进程调度和进程切换的过程。
+运行MenuOS，设置3个断点：schedule、context\_switch、switch_to。
+
 
 ```
 b schedule
@@ -68,27 +74,40 @@ b switch_to
 b pick_next_task
 
 ```
-![这里写图片描述](http://img.blog.csdn.net/20170416221712549?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+![这里写图片描述](http://img.blog.csdn.net/20170418210445333?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
 
-![这里写图片描述](http://img.blog.csdn.net/20170416221729958?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+按c（/continue）后，模拟器继续运行，在第一个断点处停止，即schedule函数处，使用l（/list）命令查看其代码，s（/step）命令逐条分析。
 
-schedule()函数主要处理过程为：
-1、针对抢占的处理
-2、raw\_spin_lock_irq(&rq->lock);
-3、检查prev的状态，并且重设state的状态
-4、next = pick_next_task(rq, prev); //进程调度算法
-5、更新就绪队列的时钟
-6、context_switch(rq, prev, next); //进程上下文切换
+![这里写图片描述](http://img.blog.csdn.net/20170418211407230?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-schedule()函数用来选择一个新的进程来运行，并调用context_switch()进行上下文的切换，这个宏调用switch_to()来进行关键上下文切换，其中pick_next_task()函数封装了进程调度算法。
-switch_to实现了进程之间的真正切换：
-（1）首先在当前进程prev的内核栈中保存esi, edi及ebp寄存器的内容。
-（2）然后将prev的内核堆栈指针ebp存入prev->thread.esp中
-（3）把将要运行进程next的内核栈指针next->thread.esp赋给esp寄存器
-（4）将popl指令所在的地址保存在prev->thread.eip中，这个地址就是prev下一次被调度的地址
-（5）jmp转入__switch_to()函数
-（6）恢复next上次被调离时堆栈内容，next进程就成为当前进程开始执行。
+![这里写图片描述](http://img.blog.csdn.net/20170418211734090?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+![这里写图片描述](http://img.blog.csdn.net/20170418211807356?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+继续运行，到第二个断点处停止了，即context\_switch处停下。与上相同，继续单步执行。在这个过程中，要留心一下switch_to。
+
+![这里写图片描述](http://img.blog.csdn.net/20170418211855076?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+switch\_to试了好几次都进不去，每次都是在中断点2和1之间进行跳转。
+
+![这里写图片描述](http://img.blog.csdn.net/20170418212528304?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+![这里写图片描述](http://img.blog.csdn.net/20170418212538508?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+后来通过list查看代码发现， context\_switch中调用了switch\_to函数。
+ 
+![这里写图片描述](http://img.blog.csdn.net/20170418210959773?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+
+![这里写图片描述](http://img.blog.csdn.net/20170418211503824?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+在该行添加了一个断点，停下的地方却是\__switch_to函数。switch_to是个宏定义，在预处理阶段就把宏定义命令转换了，导致没办法调试到该断点。
+
+![这里写图片描述](http://img.blog.csdn.net/20170418211552744?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+
 
 # 五、代码分析
 
@@ -375,7 +394,7 @@ do {                                                                    \
 } while (0)
 ```
 
-## 5.__switch_to
+## 5.\__switch_to
 
 ```
 __visible __notrace_funcgraph struct task_struct *
@@ -475,7 +494,7 @@ __switch_to(struct task_struct *prev_p, struct task_struct *next_p)
 
 schedule()函数用来选择一个新的进程来运行，并调用context\_switch()进行上下文的切换，这个宏调用switch_to()来进行关键上下文切换，其中pick_next_task()函数封装了进程调度算法。
 
-对“Linux系统一般执行过程”的理解：
+##1.对“Linux系统一般执行过程”的理解：
 
 Linux系统中，一个进程的一般执行过程：
 
@@ -483,7 +502,7 @@ Linux系统中，一个进程的一般执行过程：
 
 ![这里写图片描述](http://img.blog.csdn.net/20170416213014230?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-这里有几个特殊情况：
+## 2.这里有几个特殊情况：
 
 通过中断处理过程中的调度时机，用户态进程与内核线程之间互相切换和内核线程之间互相切换，与最一般的情况非常类似，只是内核线程运行过程中发生中断没有进程用户态和内核态的转换；
 
@@ -493,10 +512,106 @@ Linux系统中，一个进程的一般执行过程：
 
 3. 加载一个新的可执行程序后返回到用户态的情况，如execve。
 
+## 3.典型的Linux操作系统的结构
+
+![这里写图片描述](http://img.blog.csdn.net/20170418214813959?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+
+##4.switch_to从A进程切换到B进程的步骤如下：
+
+### step1：复制两个变量到寄存器：
+
+```
+[prev]"a" (prev)
+[next]"d" (next)
+```
+即
+
+> eax <== prev_A或eax<==%p(%ebp_A) 
+> edx <== next_A 或edx<==%n(%ebp_A)
+
+
+### step2：保存进程A的ebp和eflags
+
+```
+pushfl /*将状态寄存器eflags压栈*/
+pushl %ebp
+```
+因为现在esp还在A的堆栈中，所以它们是被保存到A进程的内核堆栈中。
+ 
+ 
+### step3：保存当前esp到A进程内核描述符中：
+
+```
+movl%%esp, %[prev_sp]\n\t  /*save    ESP  */
+```
+即
+> prev_A->thread.sp<== esp_A
+
+在调用switch_to时，prev是指向A进程自己的进程描述符的。
+
+### step4：从next（进程B）的描述符中取出之前从B切换出去时保存的esp_B。
+
+```
+movl %[next_sp], %%esp\n\t/* restore ESP */
+```
+即
+> esp_B <==next_A->thread.sp
+
+ 
+### step5：把标号为1的指令地址保存到A进程描述符的ip域：
+
+```
+movl $1f, %[prev_ip]\n\t/* save    EIP  */
+```
+即
+> prev_A->thread.ip<== %1f
+
+当A进程下次从switch_to回来时，会从这条指令开始执行。具体方法要看后面被切换回来的B的下一条指令。
+
+### step6：将返回地址保存到堆栈，然后调用switch_to()函数，switch_to()函数完成硬件上下文切换。
+           
+```
+pushl %[next_ip]\n\t/* restoreEIP   */
+jmp switch_to\n /* regparmcall  */
+```
+
+如果之前B也被switch_to出去过，那么[next_ip]里存的就是下面这个1f的标号，但如果进程B刚刚被创建，之前没有被switch_to出去过，那么[next_ip]里存的将是ret_ftom_fork（参看copy_thread()函数）。
+
+当这里switch_to()返回时，将返回值prev_A又写入了%eax，这就使得在switch_to宏里面eax寄存器始终保存的是prev_A的内容，或者，更准确的说，是指向A进程描述符的“指针”。
+ 
+### step7：从switch_to()返回后继续从1:标号后面开始执行，修改ebp到B的内核堆栈，恢复B的eflags：
+
+```
+popl %%ebp\n\t/* restore EBP */   
+popfl\n/*restore flags */
+```
+
+如果从switch_to()返回后从这里继续运行，那么说明在此之前B肯定被switch_to调出过，因此此前肯定备份了ebp_B和flags_B，这里执行恢复操作。
+
+### step8：将eax写入last，以在B的堆栈中保存正确的prev信息。
+          
+```
+ "=a"(last)
+```
+即
+> last_B <== %eax
+
+而从context_switch()中看到的调用switch_to的方法是：switch_to(prev,next, prev);
+
+
 # 参考资料
 
-http://blog.csdn.net/u010771356/article/details/70188234
+-  [x86体系结构下Linux-2.6.26的进程调度和切换](http://home.ustc.edu.cn/~hchunhui/linux_sched.html)
 
-https://xuezhaojiang.github.io/LinuxCore/lab8/lab8.html
+- [Linux进程调度原理](http://www.cnblogs.com/zhaoyl/archive/2012/09/04/2671156.html)
 
-http://blog.csdn.net/naiveorange/article/details/51171214
+- [Linux内核分析——进程的切换和系统的一般执行过程](http://blog.csdn.net/u010771356/article/details/70188234)
+
+- [进程调度与进程切换的过程](https://xuezhaojiang.github.io/LinuxCore/lab8/lab8.html)
+
+- [理解进程调度时机跟踪分析进程调度与进程切换的过程](http://www.jianshu.com/p/d39c670e7f61)
+
+- [理解进程调度时机跟踪分析进程调度与进程切换的过程](http://blog.csdn.net/umika/article/details/51176356)
+
+- [理解进程调度时机跟踪分析进程调度与进程切换的过程(Linux)](http://blog.csdn.net/naiveorange/article/details/51171214)
