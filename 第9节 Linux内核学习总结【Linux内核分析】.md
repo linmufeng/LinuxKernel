@@ -8,9 +8,11 @@
 
 ## 1.Linux架构
 
-首先，一张典型的Linux操作系统架构图镇楼，来自孟老师视频中的截图
+首先，一张典型的Linux操作系统架构图镇楼
 
 ![这里写图片描述](http://img.blog.csdn.net/20170423153839018?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
+
+*上图来自孟老师视频中的截图*
 
 下表是对这张图进行的简要描述，为了便于描述，上图中，根据不同颜色划分，自下而上，最底层为第1层，向上层数依次递增。
 
@@ -152,7 +154,7 @@ pop  %ebp
 
 ![这里写图片描述](http://img.blog.csdn.net/20170423161050565?watermark/2/text/aHR0cDovL2Jsb2cuY3Nkbi5uZXQvcXE0NzA4Njk4NTI=/font/5a6L5L2T/fontsize/400/fill/I0JBQkFCMA==/dissolve/70/gravity/SouthEast)
 
-图片来源：[跟踪分析Linux内核的启动过程](https://xuezhaojiang.github.io/LinuxCore/lab3/lab3.html)
+*图片来源：[跟踪分析Linux内核的启动过程](https://xuezhaojiang.github.io/LinuxCore/lab3/lab3.html)*
 
 ### 2.简单分析一下start_kernel
 
